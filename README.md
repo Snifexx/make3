@@ -38,11 +38,11 @@ The following are the currently provided default functionality one might need fo
     The provided `spath` is the path to take tests from. Tests are all in form of simple
     c3 files. Each c3 file will be considered itself. All other files in `spath` will be ignored.
 
-    > [!TIP]
-    > For the time being the command to run tests also compiles all the source code, so if you're
-    > building an executable... you better check you only have a single main function.
-    > This will obviously patcher later, as commenting one main function out everytime is...
-    > unconvenient to say the least.
+ > [!NOTE]
+ > For the time being the command to run tests also compiles all the source code, so if you're
+ > building an executable... you better check you only have a single main function.
+ > This will obviously patcher later, as commenting one main function out everytime is...
+ > unconvenient to say the least.
 
 - Libraries:
     For now there's support for only two types of libraries:
