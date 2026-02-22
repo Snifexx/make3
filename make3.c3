@@ -10,6 +10,7 @@ enum CliEvent: char {
 }
 
 faultdef NO_LIBS_DIR;
+faultdef BUILD_FAILED;
 
 interface Cmd {
   fn String[] build();
@@ -18,6 +19,11 @@ interface Cmd {
 struct BuildCmd (Cmd) {
   List {String} args;
   Allocator all;
+}
+
+struct BuildCmdOpt {
+  inline SubProcessOptions popt;
+  bool nostrip_cmd_log;
 }
 
 fn BuildCmd* BuildCmd.tinit(&self, String[] init) @inline @dynamic {
@@ -30,9 +36,15 @@ fn BuildCmd* BuildCmd.init(&self, Allocator all, String[] init) @dynamic {
   return self;
 }
 
-fn BuildCmd*? BuildCmd.shflib(&self, String lib) {
+fn BuildCmd*? BuildCmd.libshf(&self, String lib) {
   if (!path::is_dir(path::temp("libs")!!)) return NO_LIBS_DIR?;
   self.args.push(string::format(self.all, "libs/%s", lib));
+  return self;
+}
+
+fn BuildCmd*? BuildCmd.lib_given(&self, String lib) {
+  self.args.push("-l");
+  self.args.push(lib);
   return self;
 }
 
@@ -43,6 +55,13 @@ fn BuildCmd*? BuildCmd.lib(&self, String lib) {
   self.args.push("-L");
   self.args.push(string::format(self.all, "libs/%s", lib));
   self.args.push(string::format(self.all, "libs/%s/*", lib));
+  return self;
+}
+
+fn BuildCmd*? BuildCmd.nix_env(&self) {
+  String nixenv = string::tformat("-Wl,%s", env::tget_var("NIX_LDFLAGS"))!;
+  self.args.push("-z");
+  self.args.push(nixenv);
   return self;
 }
 
@@ -115,13 +134,13 @@ fn void? go_rebuild_urself(String[] args, String listened_file, String make3_pat
 
   if (res != 0) {
     io::printfn("Rebuilding failed with opcode %d", res);
-    return;
+    return BUILD_FAILED?;
   }
 
   os::exit(0);
 }
 
-fn int? run(String[] cmd, SubProcessOptions opt = {
+fn int? run(String[] cmd, BuildCmdOpt opt = {
     .inherit_environment = true,
     .no_window = true,
   }, bool silent = false) {
@@ -137,7 +156,13 @@ fn int? run(String[] cmd, SubProcessOptions opt = {
 
   if (!silent) {
     io::print("\nExecuted command '");
-    io::print(cmd);
+    DString strcmd;
+    strcmd.tinit().appendf("%s", cmd);
+    if (!opt.nostrip_cmd_log && strcmd.len() > 1000) {
+      strcmd.chop(1000);
+      strcmd.append("...]");
+    }
+    io::print(strcmd);
     io::print("' with exit code ");
     io::printn(res);
   }

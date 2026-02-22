@@ -14,7 +14,8 @@
       ];
       
       shellHook = ''
-        export SHELL="$(which zsh)"
+        export SHELL="$(which fish)"
+        $SHELL
       '';
     };
   };
