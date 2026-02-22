@@ -43,8 +43,10 @@ fn BuildCmd*? BuildCmd.libshf(&self, String lib) {
 }
 
 fn BuildCmd*? BuildCmd.lib_given(&self, String lib) {
+  if (!path::is_dir(path::temp("libs")!!)) return NO_LIBS_DIR?;
   self.args.push("-l");
   self.args.push(lib);
+  self.args.push(string::format(self.all, "libs/%s/*", lib));
   return self;
 }
 
