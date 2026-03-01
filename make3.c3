@@ -243,10 +243,19 @@ fn int main_handle(String[] args, HandledMainFn handled_main, int err_code) {
   return ret;
 }
 
-macro @print_err(#res) {
+macro fault @catch_print(#res) {
   if (catch err = #res) {
     io::eprintn(err);
-    return true;
+    return err;
   }
-  return false;
+  return {};
 }
+
+macro @opt_log(#res, String $fmt, ...) {
+  if (catch #res) {
+    String $msg = $$sprintf($fmt, $vasplat);
+    io::eprint($msg);
+  }
+  return #res;
+}
+
