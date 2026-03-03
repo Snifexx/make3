@@ -172,6 +172,9 @@ fn String[] PathList.to_targs(PathList self) {
   return args;
 }
 
+// TODO:
+// NOTE! This is a lazy implementation, I spin up a fish process to expand the wildcard
+// I should probably implement a native one ore use libc's glob or windows' shit
 fn PathList? wildcard(Allocator all, String wildcard) {
   BuildCmd cmd;
   cmd.tinit({ "fish", "-c", string::tformat("echo %s", wildcard) });
@@ -253,9 +256,8 @@ macro fault @catch_print(#res) {
 
 macro @opt_log(#res, String $fmt, ...) {
   if (catch #res) {
-    String $msg = $$sprintf($fmt, $vasplat);
-    io::eprint($msg);
+    String msg = string::tformat($fmt, $vasplat);
+    io::eprint(msg);
   }
   return #res;
 }
-
